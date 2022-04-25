@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import sys
 import urllib.request
 from bs4 import BeautifulSoup
@@ -30,4 +32,3 @@ if __name__ == '__main__':
 	# url = sys.argv[i]
 
 	# spider(url)
-
