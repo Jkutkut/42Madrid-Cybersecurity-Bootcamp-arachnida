@@ -17,22 +17,22 @@ class Arachnida:
 
 	def update(self, argc, argv):
 		i = 1
-		while i < argc - 1:
+		while i < argc:
 			arg = sys.argv[i]
 			if arg == '-r':
-				if i < argc - 2:
+				if i < argc - 1:
 					if sys.argv[i + 1] == '-l':
-						if i < argc - 3 and sys.argv[i + 2].isdigit():
-							recursive = int(sys.argv[i + 2])
+						if i < argc - 2 and sys.argv[i + 2].isdigit():
+							self.depth = int(sys.argv[i + 2])
 						else:
-							print("-l must be followed by a number")
+							print(f'-r -l must be followed by a number, but {sys.argv[i + 2]} was given')
 							exit()
 						i += 2
 				else:
-					recursive = self.DEF_DEPTH
-			elif arg == '-p':
-				if i < argc - 2:
-					path = sys.argv[i + 1]
+					self.depth = self.DEF_DEPTH
+			elif arg == '-p': # TODO Check if path is valid
+				if i < argc - 1:
+					self.path = sys.argv[i + 1]
 				else:
 					print("-p must be followed by a path")
 					exit()
