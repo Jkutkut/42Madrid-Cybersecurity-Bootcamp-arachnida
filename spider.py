@@ -8,6 +8,7 @@ class Arachnida:
 
 	DEF_PATH = "./idea/"
 	DEF_DEPTH = 5
+	DEF_IMG_TYPE = ['jpg', 'jpeg', 'png', 'gif', 'bmp']
 
 	def __init__(self, argc, argv):
 		self.url = argv[argc]
@@ -49,16 +50,28 @@ class Arachnida:
 	def __str__(self) -> str:
 		return f'Arachnida:\n\tURL: {self.url}\n\tPath: {self.path}\n\tDepth: {self.depth}'
 
-	@staticmethod
-	def spider(cls, url, recursive=0, path=None):
+	@classmethod
+	def spider(cls, url, path=None, imgs=set()):
 		if path is None:
 			cls.DEF_PATH
-		datos = urllib.request.urlopen(url).read().decode()
-		soup =  BeautifulSoup(datos)
+		data = urllib.request.urlopen(url).read().decode()
+		cls.get_imgs(data, imgs)
+		# print(f'\t{len(imgs)} images found')
+		# print(*[f'\t\t{img}' for img in imgs], sep='\n')
+
+	@classmethod
+	def get_imgs(data, imgs, types=None):
+		if types is None:
+			types = Arachnida.DEF_IMG_TYPE
+		soup =  BeautifulSoup(data, "html.parser")
+		# soup =  BeautifulSoup(data, "lxml")
+		# soup =  BeautifulSoup(data, "lxml-xml")
+		# soup =  BeautifulSoup(data, "html5lib")
 		tags = soup("img")
 		for tag in tags:
-			print(tag.get("src"))
-
+			extension = tag.get('src').split('.')[-1]
+			if extension in types:
+				imgs.add(tag.get("src"))
 
 
 if __name__ == '__main__':
@@ -67,4 +80,4 @@ if __name__ == '__main__':
 		exit()
 	a = Arachnida(len(sys.argv) - 1, sys.argv)
 	print(a)
-
+	a.run()
