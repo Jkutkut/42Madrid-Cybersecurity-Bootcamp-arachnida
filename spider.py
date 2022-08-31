@@ -9,10 +9,9 @@ from bs4 import BeautifulSoup
 class Arachnida:
 
 	DEF_STORE_PATH = "./results/"
-	DEF_DEPTH = 0
+	DEF_DEPTH = 4
 
 	def __init__(self, argc, argv):
-		# self.url = argv[argc]
 		url = argv[argc]
 		# Split the url between the domain and the path
 		self.protocol = 'http://'
@@ -59,22 +58,24 @@ class Arachnida:
 
 	def run(self):
 		print(self.url + "/" + self.path)
-		results = Arachnida.spider(self.url + self.path, self.depth)
+		results = Arachnida.spider(self.url, self.path, self.depth)
 		self.save(results)
 
 	def __str__(self) -> str:
 		return f'Arachnida:\n\tURL: {self.url}\n\tPath: {self.path}\n\tDepth: {self.depth}'
 
 	@classmethod
-	def spider(cls, url, depth = DEF_DEPTH, results=set()):
-		data = urllib.request.urlopen(url).read().decode()
+	def spider(cls, url, path, depth = 0, results=set()):
+		print(f'Spidering {url} at {path}, depth {depth}')
+		data = urllib.request.urlopen(url + path).read().decode()
 		soup = BeautifulSoup(data, 'html.parser')
 		paths = cls.analyze(soup, results)
-		# print(f'{len(paths)} paths found')
-		# print(*[f'\t{p}' for p in paths], sep='\n')
-		# if depth > 0:
-		# 	for path in paths:
-		# 		results = results | cls.spider(path, path, depth - 1, results)
+		if depth > 0:
+			for p in paths:
+				if len(p) > len(path):
+					if p[0] == '/':
+						p = p[1:]
+					results = results | cls.spider(url, p, depth - 1, results)
 		return results
 
 	@classmethod
@@ -106,15 +107,20 @@ class Arachnida:
 
 	def save(self, results):
 		# Create a folder for the results
-		dir = self.DEF_STORE_PATH + self.url.replace(self.protocol, '') + "/"
+		# dir = self.DEF_STORE_PATH + self.url.replace(self.protocol, '') + "/"
+		dir = self.DEF_STORE_PATH + self.url.replace(self.protocol, '')[:-1]
 		os.makedirs(dir, exist_ok=True)
 		print("Storing results in " + dir)
 
 		# Download the results
 		for result in results:
-			file = result.split('/')[-1]
-			print(f'\t{file}')
-			urllib.request.urlretrieve(self.url + result, dir + file)
+			# file = result.split('/')[-1]
+			# print(f'\t{file}')
+			# urllib.request.urlretrieve(self.url + result, dir + file)
+			print(f'\t{result}')
+			file_dir = '/'.join(result.split('/')[:-1])
+			os.makedirs(dir + file_dir, exist_ok=True)
+			urllib.request.urlretrieve(self.url + result, dir + result)
 
 
 if __name__ == '__main__':
