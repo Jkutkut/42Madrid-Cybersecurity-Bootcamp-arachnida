@@ -1,28 +1,29 @@
 #!/usr/bin/env python3
 
 import sys
-from typing import Protocol
+import os
+# from typing import Protocol
 import urllib.request
 from bs4 import BeautifulSoup
 
 class Arachnida:
 
-	DEF_PATH = "./"
-	DEF_DEPTH = 5
+	DEF_STORE_PATH = "./results/"
+	DEF_DEPTH = 0
 
 	def __init__(self, argc, argv):
 		# self.url = argv[argc]
 		url = argv[argc]
 		# Split the url between the domain and the path
-		protocol = 'http://'
+		self.protocol = 'http://'
 		if 'https://' in url:
-			protocol = 'https://'
+			self.protocol = 'https://'
 			url = url[8:] # Remove https://
 		elif 'http://' in url:
 			url = url[7:]
 		
 		url = url.split('/')
-		self.url = protocol + url[0]
+		self.url = self.protocol + url[0] + '/'
 		self.path = "/".join(url[1:])
 
 		self.depth = 0
@@ -58,20 +59,19 @@ class Arachnida:
 
 	def run(self):
 		print(self.url + "/" + self.path)
-		results = Arachnida.spider(self.url + "/" + self.path, self.depth)
-		print(f'{len(results)} elements found')
-		print(*[f'\t{e}' for e in results], sep='\n')
+		results = Arachnida.spider(self.url + self.path, self.depth)
+		self.save(results)
 
 	def __str__(self) -> str:
 		return f'Arachnida:\n\tURL: {self.url}\n\tPath: {self.path}\n\tDepth: {self.depth}'
 
 	@classmethod
-	def spider(cls, url, depth = 0, results=set()):
+	def spider(cls, url, depth = DEF_DEPTH, results=set()):
 		data = urllib.request.urlopen(url).read().decode()
 		soup = BeautifulSoup(data, 'html.parser')
 		paths = cls.analyze(soup, results)
-		print(f'{len(paths)} paths found')
-		print(*[f'\t{p}' for p in paths], sep='\n')
+		# print(f'{len(paths)} paths found')
+		# print(*[f'\t{p}' for p in paths], sep='\n')
 		# if depth > 0:
 		# 	for path in paths:
 		# 		results = results | cls.spider(path, path, depth - 1, results)
@@ -103,6 +103,18 @@ class Arachnida:
 	# 		# if extension in types:
 	# 			# imgs.add(tag.get("src"))
 	# 		imgs.add(tag.get("href"))
+
+	def save(self, results):
+		# Create a folder for the results
+		dir = self.DEF_STORE_PATH + self.url.replace(self.protocol, '') + "/"
+		os.makedirs(dir, exist_ok=True)
+		print("Storing results in " + dir)
+
+		# Download the results
+		for result in results:
+			file = result.split('/')[-1]
+			print(f'\t{file}')
+			urllib.request.urlretrieve(self.url + result, dir + file)
 
 
 if __name__ == '__main__':
